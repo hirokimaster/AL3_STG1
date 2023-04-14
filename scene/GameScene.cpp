@@ -2,10 +2,14 @@
 #include "TextureManager.h"
 #include <cassert>
 
+//コンストラクタ
 GameScene::GameScene() {}
 
+
+//デストラクタ
 GameScene::~GameScene() {}
 
+//初期化
 void GameScene::Initialize() {
 
 	dxCommon_ = DirectXCommon::GetInstance();
@@ -13,8 +17,10 @@ void GameScene::Initialize() {
 	audio_ = Audio::GetInstance();
 }
 
+//更新
 void GameScene::Update() {}
 
+//表示
 void GameScene::Draw() {
 
 	// コマンドリストの取得
