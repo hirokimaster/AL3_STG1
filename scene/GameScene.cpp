@@ -2,14 +2,20 @@
 #include "TextureManager.h"
 #include <cassert>
 #include "MathUtilityForText.h"
+#include "time.h"
 
 //コンストラクタ
 GameScene::GameScene() {}
 
 
-
 //デストラクタ
-GameScene::~GameScene() {}
+GameScene::~GameScene() { 
+	
+	delete modelStage_;
+	delete modelPlayer_;
+	delete modelBeam_;
+	delete modelEnemy_;
+}
 
 
 //初期化
@@ -57,6 +63,15 @@ void GameScene::Initialize() {
 	modelBeam_ = Model::Create();
 	worldTransformBeam_.scale_ = {0.3f, 0.3f, 0.3f};
 	worldTransformBeam_.Initialize();
+
+
+	// 敵
+	textureHandleEnemy_ = TextureManager::Load("enemy.png");
+	modelEnemy_ = Model::Create();
+	worldTransformEnemy_.scale_ = {0.3f, 0.3f, 0.3f};
+	worldTransformEnemy_.translation_.z = 40;
+	worldTransformEnemy_.Initialize();
+	srand((unsigned int)time(NULL));
 
 }
 
@@ -135,7 +150,7 @@ void GameScene::BeamMove() {
 		worldTransformBeam_.translation_.z += 1.0f;
 
 		// z座標が40超えたら消す
-		if (worldTransformBeam_.translation_.z > 40) {
+		if (worldTransformBeam_.translation_.z >= 40) {
 			beamFlag_ = false;
 		}
 
@@ -145,6 +160,8 @@ void GameScene::BeamMove() {
 	
 }
 
+
+// ビーム発射
 void GameScene::BeamBron() {
 
 	// 発射
@@ -157,6 +174,64 @@ void GameScene::BeamBron() {
 
 }
 
+/*------------------------------------------------
+ 敵
+--------------------------------------------------*/
+
+//敵更新
+void GameScene::EnemyUpdate() {
+
+	// 行列変換を更新
+	worldTransformEnemy_.matWorld_ = MakeAffineMatrix(
+	    worldTransformEnemy_.scale_, worldTransformEnemy_.rotation_,
+	    worldTransformEnemy_.translation_);
+
+	// 変換行列を定数バッファに転送
+	worldTransformEnemy_.TransferMatrix();
+
+	EnemyMove();
+	EnemyBron();
+
+}
+
+// 敵移動
+void GameScene::EnemyMove() {
+
+	// 回転
+	worldTransformEnemy_.rotation_.x += 0.1f;
+
+	// 移動
+	if (isEnemyAlive_) {
+
+		worldTransformEnemy_.translation_.z -= 0.5f;
+	}
+
+	// 端に行ったら消す
+	if (worldTransformEnemy_.translation_.z <= -5) {
+		isEnemyAlive_ = false;
+	}
+
+}
+
+// 敵発生
+void GameScene::EnemyBron() {
+
+
+	// 乱数でx座標の指定
+	int randX = rand() % 80;
+	float randX2 = (float)randX / 10 - 4;
+	
+	// 発生
+	if (isEnemyAlive_ == false) {
+		isEnemyAlive_ = true;
+		worldTransformEnemy_.translation_.z = 40;
+		worldTransformEnemy_.translation_.x = randX2;
+	}
+
+	
+
+}
+
 
 // 更新
 void GameScene::Update() {
@@ -166,6 +241,9 @@ void GameScene::Update() {
 
 	//　ビーム
 	BeamUpdate();
+
+	//敵
+	EnemyUpdate();
 
 
 }
@@ -213,6 +291,13 @@ void GameScene::Draw() {
 
 		modelBeam_->Draw(worldTransformBeam_, viewProjection_, textureHandleBeam_);
 	}
+
+	// 敵表示
+	if (isEnemyAlive_) {
+
+		modelEnemy_->Draw(worldTransformEnemy_, viewProjection_, textureHandleEnemy_);
+	}
+	
 
 
 	/// ここに3Dオブジェクトの描画処理を追加できる

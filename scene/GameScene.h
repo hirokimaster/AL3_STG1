@@ -43,6 +43,12 @@ public: // メンバ関数
 	WorldTransform worldTransformBeam_;
 	int beamFlag_ = false;
 
+	// 敵
+	uint32_t textureHandleEnemy_ = 0;
+	Model* modelEnemy_ = nullptr;
+	WorldTransform worldTransformEnemy_;
+	int isEnemyAlive_ = true;
+
 
 	/// <summary>
 	/// デストラクタ
@@ -72,6 +78,11 @@ public: // メンバ関数
 	void BeamUpdate();    // 更新
 	void BeamMove();      // 移動
 	void BeamBron();      // 発生
+
+	// 敵
+	void EnemyUpdate();   // 更新
+	void EnemyMove();     // 移動
+	void EnemyBron();     // 発生
 
 private: // メンバ変数
 	DirectXCommon* dxCommon_ = nullptr;
