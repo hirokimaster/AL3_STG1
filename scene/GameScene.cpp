@@ -52,11 +52,16 @@ void GameScene::Initialize() {
 	worldTransformPlayer_.scale_ = {0.5f, 0.5f, 0.5f};
 	worldTransformPlayer_.Initialize();
 
+	// 弾（ビーム）
+	textureHandleBeam_ = TextureManager::Load("beam.png");
+	modelBeam_ = Model::Create();
+	worldTransformBeam_.scale_ = {0.3f, 0.3f, 0.3f};
+	worldTransformBeam_.Initialize();
 
 }
 
 /*--------------------------------------------------
-プレイヤー
+ プレイヤー
 ----------------------------------------------------*/
 
 // プレイヤー更新
@@ -85,13 +90,68 @@ void GameScene::PlayerUpdate() {
 
 	//移動制限
 	//右
-	if (worldTransformPlayer_.translation_.x > 4) {
-		worldTransformPlayer_.translation_.x = 4;
+	if (worldTransformPlayer_.translation_.x > 4.0f) {
+		worldTransformPlayer_.translation_.x = 4.0f;
 	}
 
 	//左
-	if (worldTransformPlayer_.translation_.x < -4) {
-		worldTransformPlayer_.translation_.x = -4;
+	if (worldTransformPlayer_.translation_.x < -4.0f) {
+		worldTransformPlayer_.translation_.x = -4.0f;
+	}
+
+
+}
+
+/*---------------------------------------------------
+ ビーム
+-----------------------------------------------------*/
+
+// ビーム更新
+void GameScene::BeamUpdate() {
+
+	// 行列変換を更新
+	worldTransformBeam_.matWorld_ = MakeAffineMatrix(
+	    worldTransformBeam_.scale_, worldTransformBeam_.rotation_,
+	    worldTransformBeam_.translation_);
+
+	// 変換行列を定数バッファに転送
+	worldTransformBeam_.TransferMatrix();
+
+	BeamMove();
+	BeamBron();
+
+
+}
+
+// ビーム移動
+void GameScene::BeamMove() {
+
+	if (beamFlag_) {
+
+		// 回転
+		worldTransformBeam_.rotation_.x += 0.1f;
+
+		// 移動
+		worldTransformBeam_.translation_.z += 1.0f;
+
+		// z座標が40超えたら消す
+		if (worldTransformBeam_.translation_.z > 40) {
+			beamFlag_ = false;
+		}
+
+	}
+
+	
+	
+}
+
+void GameScene::BeamBron() {
+
+	// 発射
+	if (input_->TriggerKey(DIK_SPACE) && beamFlag_ == false) {
+		beamFlag_ = true;
+		worldTransformBeam_.translation_.z = worldTransformPlayer_.translation_.z;
+		worldTransformBeam_.translation_.x = worldTransformPlayer_.translation_.x;
 	}
 
 
@@ -101,7 +161,12 @@ void GameScene::PlayerUpdate() {
 // 更新
 void GameScene::Update() {
 
+	// プレイヤー
 	PlayerUpdate();
+
+	//　ビーム
+	BeamUpdate();
+
 
 }
 
@@ -143,6 +208,11 @@ void GameScene::Draw() {
 	// プレイヤー表示
 	modelPlayer_->Draw(worldTransformPlayer_, viewProjection_, textureHandlePlayer_);
 
+	// ビーム表示
+	if (beamFlag_) {
+
+		modelBeam_->Draw(worldTransformBeam_, viewProjection_, textureHandleBeam_);
+	}
 
 
 	/// ここに3Dオブジェクトの描画処理を追加できる
@@ -152,6 +222,7 @@ void GameScene::Draw() {
 	Model::PostDraw();
 #pragma endregion
 
+	
 #pragma region 前景スプライト描画
 	// 前景スプライト描画前処理
 	Sprite::PreDraw(commandList);
