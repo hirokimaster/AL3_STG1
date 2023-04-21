@@ -32,10 +32,16 @@ public: // メンバ関数
 	Model* modelStage_ = nullptr;
 	WorldTransform worldTransformStage_;
 
+	// プレイヤー
+	uint32_t textureHandlePlayer_ = 0;
+	Model* modelPlayer_ = nullptr;
+	WorldTransform worldTransformPlayer_;
+
+
 	/// <summary>
 	/// デストラクタ
 	/// </summary>
-	~GameScene();	
+    ~GameScene();	
 
 	/// <summary>
 	/// 初期化
@@ -51,6 +57,8 @@ public: // メンバ関数
 	/// 描画
 	/// </summary>
 	void Draw();
+
+	void PlayerUpdate();
 
 private: // メンバ変数
 	DirectXCommon* dxCommon_ = nullptr;

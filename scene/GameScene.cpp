@@ -11,6 +11,7 @@ GameScene::GameScene() {}
 //デストラクタ
 GameScene::~GameScene() {}
 
+
 //初期化
 void GameScene::Initialize() {
 
@@ -45,12 +46,67 @@ void GameScene::Initialize() {
 	// 変換行列を定数バッファに転送
 	worldTransformStage_.TransferMatrix();	
 
+	// プレイヤー
+	textureHandlePlayer_ = TextureManager::Load("player.png");
+	modelPlayer_ = Model::Create();
+	worldTransformPlayer_.scale_ = {0.5f, 0.5f, 0.5f};
+	worldTransformPlayer_.Initialize();
+
+
 }
 
-//更新
-void GameScene::Update() {}
+/*--------------------------------------------------
+プレイヤー
+----------------------------------------------------*/
 
-//表示
+// プレイヤー更新
+void GameScene::PlayerUpdate() {
+
+	// 行列変換を更新
+	worldTransformPlayer_.matWorld_ = MakeAffineMatrix(
+	    worldTransformPlayer_.scale_, worldTransformPlayer_.rotation_,
+	    worldTransformPlayer_.translation_);
+
+	// 変換行列を定数バッファに転送
+	worldTransformPlayer_.TransferMatrix();
+
+	//移動処理
+	//右
+	if (input_->PushKey(DIK_D)) {
+		worldTransformPlayer_.translation_.x += 0.1f;
+	
+	}
+
+	// 左
+	if (input_->PushKey(DIK_A)) {
+		worldTransformPlayer_.translation_.x -= 0.1f;
+	}
+
+
+	//移動制限
+	//右
+	if (worldTransformPlayer_.translation_.x > 4) {
+		worldTransformPlayer_.translation_.x = 4;
+	}
+
+	//左
+	if (worldTransformPlayer_.translation_.x < -4) {
+		worldTransformPlayer_.translation_.x = -4;
+	}
+
+
+}
+
+
+// 更新
+void GameScene::Update() {
+
+	PlayerUpdate();
+
+}
+
+
+// 表示
 void GameScene::Draw() {
 
 	// コマンドリストの取得
@@ -83,6 +139,10 @@ void GameScene::Draw() {
 	
 	// ステージ
 	modelStage_->Draw(worldTransformStage_, viewProjection_, textureHandleStage_);
+
+	// プレイヤー表示
+	modelPlayer_->Draw(worldTransformPlayer_, viewProjection_, textureHandlePlayer_);
+
 
 
 	/// ここに3Dオブジェクトの描画処理を追加できる
