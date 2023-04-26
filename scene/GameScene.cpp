@@ -15,6 +15,8 @@ GameScene::~GameScene() {
 	delete modelPlayer_;
 	delete modelBeam_;
 	delete modelEnemy_;
+	delete spriteTitle_;
+	delete spriteEnter_;
 }
 
 
@@ -73,11 +75,54 @@ void GameScene::Initialize() {
 	worldTransformEnemy_.Initialize();
 	srand((unsigned int)time(NULL));
 
+	// タイトル（2Dスプライト)
+	textureHandleTitle_ = TextureManager::Load("title.png");
+	spriteTitle_ = Sprite::Create(textureHandleTitle_, {0, 0});
+
+	textureHandleEnter_ = TextureManager::Load("enter.png");
+	spriteEnter_ = Sprite::Create(textureHandleEnter_, {400, 500});
+
+	// ゲームオーバー
+	textureHandleGameOver_ = TextureManager::Load("gameover.png");
+	spriteGameOver_ = Sprite::Create(textureHandleGameOver_, {0, 0});
+
 	//デバッグ
 	debugText_ = DebugText::GetInstance();
 	debugText_->Initialize();
 
 }
+
+
+// ゲームプレイ前の初期化
+void GameScene::GamePlayStart() {
+
+	// 敵
+	worldTransformEnemy_.translation_.z = 40;
+	// スコア、ライフ
+	gameScore_ = 0;
+    playerLife_ = 3;
+	// ゲームオーバーフラグ
+	gameOver_ = false;
+	// プレイヤー
+
+	// 行列変換を更新
+	worldTransformPlayer_.matWorld_ = MakeAffineMatrix(
+	    worldTransformPlayer_.scale_, worldTransformPlayer_.rotation_,
+	    worldTransformPlayer_.translation_);
+
+	// 変換行列を定数バッファに転送
+	worldTransformPlayer_.TransferMatrix();
+
+	worldTransformPlayer_.translation_.x = 0;
+
+
+
+}
+
+
+
+
+
 
 // ゲームプレイ更新
 void GameScene::GamePlayUpdate() { 
@@ -86,9 +131,18 @@ void GameScene::GamePlayUpdate() {
 	BeamUpdate();
 	Collision();
 
+	// 
+	if (playerLife_ <= 0) {
+		gameOver_ = true;
+	}
+
+	if (gameOver_) {
+		sceneMode_ = 2;
+	}
+
 }
 
-// 
+
 void GameScene::GamePlayDraw3D() {
 	// ステージ
 	modelStage_->Draw(worldTransformStage_, viewProjection_, textureHandleStage_);
@@ -343,15 +397,69 @@ void GameScene::CollisionBeamEnemy() {
 
 }
 
+/*------------------------------------------------
+ タイトル
+---------------------------------------------------*/
+
+// ゲームオーバー更新
+void GameScene::GameOverUpdate() {
+	gameTimer_ += 1;
+
+	if (input_->TriggerKey(DIK_RETURN)) {
+		GamePlayStart();
+		sceneMode_ = 1;
+	}
+}
+
+
+// タイトル更新
+void GameScene::TitleUpdate() { 
+	gameTimer_ += 1;
+
+	// エンターキー押したとき　(タイトルからプレイ）
+	if (input_->TriggerKey(DIK_RETURN)) {
+		sceneMode_ = 0;
+
+	}
+
+}
+
+// タイトル表示
+void GameScene::TitleDraw2DNear() {
+	// タイトル表示
+	spriteTitle_->Draw();
+
+	if (gameTimer_ % 40 >= 20) {
+		spriteEnter_->Draw();
+	}
+	
+
+}
+
+void GameScene::GameOverDraw2DNear() {
+	// ゲームオーバー
+	spriteGameOver_->Draw();
+	
+}
 
 
 // 更新
 void GameScene::Update() { 
 	// シーン切り替え
-	switch (sceneMode_) { 
-	
+	switch (sceneMode_) {
+
 	case 0:
 		GamePlayUpdate(); // ゲームプレイ
+		break;
+
+	case 1:
+		TitleUpdate(); // タイトル更新
+		break;
+
+    case 2:
+		if (gameOver_) {
+			GameOverUpdate();
+		}
 		break;
 	}
 
@@ -374,10 +482,22 @@ void GameScene::Draw() {
 	switch (sceneMode_) {
 
 	case 0:
-		GamePlayDraw2DBack();
+		GamePlayDraw2DBack(); // ゲームプレイ2D表示
 		break;
+
+    case 1:
+		TitleDraw2DNear(); // タイトル表示
+		break;
+
+    case 2:
+		if (gameOver_) {
+			GamePlayDraw2DBack();
+			GameOverDraw2DNear(); // ゲームオーバー
+		}
+		break;
+
 	}
-	
+
 
 	/// ここに背景スプライトの描画処理を追加できる
 	/// </summary>
@@ -399,6 +519,11 @@ void GameScene::Draw() {
 	case 0:
 		GamePlayDraw3D();
 		break;
+
+	case 2:
+		if (gameOver_) {
+			GamePlayDraw3D();
+		}
 	}
 	
 
@@ -421,6 +546,14 @@ void GameScene::Draw() {
 	case 0:
 		GamePlayDraw2DNear();
 		break;
+
+	case 2:
+
+		if (gameTimer_ % 40 >= 20) {
+			spriteEnter_->Draw();
+		}
+		GamePlayDraw2DNear();
+
 	}
 	
 	debugText_->DrawAll();

@@ -50,14 +50,27 @@ public: // メンバ関数
 	WorldTransform worldTransformEnemy_;
 	int isEnemyAlive_ = true;
 
+	// タイトル（スプライト）
+	uint32_t textureHandleTitle_ = 0;
+	Sprite* spriteTitle_ = nullptr;
+
+	uint32_t textureHandleEnter_ = 0;
+	Sprite* spriteEnter_ = nullptr;
+	int gameTimer_ = 0;
+
+    // ゲームオーバー
+	uint32_t textureHandleGameOver_ = 0;
+	Sprite* spriteGameOver_ = nullptr;
+	int gameOver_ = false;
+
+
 	//デバッグ
 	DebugText* debugText_ = nullptr;
 	int gameScore_ = 0;
 	int playerLife_ = 3;
 
 	// シーン
-	int sceneMode_ = 0;
-
+	int sceneMode_ = 1;
 
 	/// <summary>
 	/// デストラクタ
@@ -85,6 +98,8 @@ public: // メンバ関数
 	void GamePlayDraw2DNear();  // ゲームプレイ近景2D表示
 
 
+	// 初期化
+	void GamePlayStart(); //変数の初期化など
 
 	// プレイヤー
 	void PlayerUpdate();
@@ -103,6 +118,14 @@ public: // メンバ関数
 	void Collision();
 	void CollisionPlayerEnemy(); // プレイヤーと敵
 	void CollisionBeamEnemy(); // ビームと敵
+
+	// シーン切り替え
+	void TitleUpdate();       // タイトル更新
+	void TitleDraw2DNear();   // タイトル2D
+	void GameOverDraw2DNear(); // ゲームオーバー
+	void GameOverUpdate(); // ゲームオーバー更新
+
+
 
 private: // メンバ変数
 	DirectXCommon* dxCommon_ = nullptr;
