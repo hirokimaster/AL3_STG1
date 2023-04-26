@@ -152,12 +152,13 @@ void GameScene::BeamMove() {
 		// z座標が40超えたら消す
 		if (worldTransformBeam_.translation_.z >= 40) {
 			beamFlag_ = false;
+			worldTransformBeam_.translation_.y = -100;
 		}
 
 	}
 
-	
-	
+
+
 }
 
 
