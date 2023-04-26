@@ -55,6 +55,9 @@ public: // メンバ関数
 	int gameScore_ = 0;
 	int playerLife_ = 3;
 
+	// シーン
+	int sceneMode_ = 0;
+
 
 	/// <summary>
 	/// デストラクタ
@@ -76,7 +79,13 @@ public: // メンバ関数
 	/// </summary>
 	void Draw();
 
-	
+	void GamePlayUpdate();      // ゲームプレイ更新
+	void GamePlayDraw3D();      // ゲームプレイ3D表示
+	void GamePlayDraw2DBack();  // ゲームプレイ背景2D表示
+	void GamePlayDraw2DNear();  // ゲームプレイ近景2D表示
+
+
+
 	// プレイヤー
 	void PlayerUpdate();
 
