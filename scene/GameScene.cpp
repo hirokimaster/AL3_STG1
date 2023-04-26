@@ -73,6 +73,10 @@ void GameScene::Initialize() {
 	worldTransformEnemy_.Initialize();
 	srand((unsigned int)time(NULL));
 
+	//デバッグ
+	debugText_ = DebugText::GetInstance();
+	debugText_->Initialize();
+
 }
 
 /*--------------------------------------------------
@@ -152,9 +156,11 @@ void GameScene::BeamMove() {
 		// z座標が40超えたら消す
 		if (worldTransformBeam_.translation_.z >= 40) {
 			beamFlag_ = false;
-			worldTransformBeam_.translation_.y = -100;
-		}
+		} 
 
+		if (beamFlag_ == false) {
+			worldTransformBeam_.translation_.x = -200;
+		}
 	}
 
 
@@ -233,6 +239,62 @@ void GameScene::EnemyBron() {
 
 }
 
+/*----------------------------------------------
+ 衝突判定
+-------------------------------------------------*/
+
+// 衝突判定更新
+void GameScene::Collision() {
+	// プレイヤーと敵
+	CollisionPlayerEnemy();
+
+	// ビームと敵
+	CollisionBeamEnemy();
+}
+
+// 衝突判定（プレイヤーと敵）
+void GameScene::CollisionPlayerEnemy() {
+
+	//敵がいたら
+	if (isEnemyAlive_) {
+		float dx = abs(worldTransformPlayer_.translation_.x - worldTransformEnemy_.translation_.x);
+		float dz = abs(worldTransformPlayer_.translation_.z - worldTransformEnemy_.translation_.z);
+
+		// 当たったら
+		if (dx < 1 && dz < 1) {
+			// 消える
+			isEnemyAlive_ = false;
+			playerLife_ = playerLife_ - 1;
+		}
+	}
+
+
+}
+
+void GameScene::CollisionBeamEnemy() {
+
+	// 
+	if (isEnemyAlive_ && beamFlag_) {
+		float dx = abs(worldTransformBeam_.translation_.x - worldTransformEnemy_.translation_.x);
+		float dz = abs(worldTransformBeam_.translation_.z - worldTransformEnemy_.translation_.z);
+
+		// 当たったら
+		if (dx < 1 && dz < 1) {
+			// 消える
+			isEnemyAlive_ = false;
+			beamFlag_ = false;
+			gameScore_ = gameScore_ + 1;
+
+		}
+	}
+
+	if (beamFlag_ == false) {
+		worldTransformBeam_.translation_.x = -200;
+	}
+
+}
+
+
 
 // 更新
 void GameScene::Update() {
@@ -245,6 +307,9 @@ void GameScene::Update() {
 
 	//敵
 	EnemyUpdate();
+
+	// 衝突判定
+	Collision();
 
 
 }
@@ -314,6 +379,19 @@ void GameScene::Draw() {
 	Sprite::PreDraw(commandList);
 
 	/// <summary>
+	
+	//ゲームスコア
+	char str[100];
+	sprintf_s(str, "SCORE %d", gameScore_);
+	debugText_->Print(str, 200, 10, 2);
+	debugText_->DrawAll();
+	// プレイヤーライフ
+	sprintf_s(str, "LIFE %d", playerLife_);
+	debugText_->Print(str, 1000, 10, 2);
+	debugText_->DrawAll();
+
+
+
 	/// ここに前景スプライトの描画処理を追加できる
 	/// </summary>
 

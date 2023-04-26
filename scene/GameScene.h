@@ -8,6 +8,7 @@
 #include "Sprite.h"
 #include "ViewProjection.h"
 #include "WorldTransform.h"
+#include "DebugText.h"
 
 /// <summary>
 /// ゲームシーン
@@ -49,6 +50,11 @@ public: // メンバ関数
 	WorldTransform worldTransformEnemy_;
 	int isEnemyAlive_ = true;
 
+	//デバッグ
+	DebugText* debugText_ = nullptr;
+	int gameScore_ = 0;
+	int playerLife_ = 3;
+
 
 	/// <summary>
 	/// デストラクタ
@@ -83,6 +89,11 @@ public: // メンバ関数
 	void EnemyUpdate();   // 更新
 	void EnemyMove();     // 移動
 	void EnemyBron();     // 発生
+
+	// 衝突判定
+	void Collision();
+	void CollisionPlayerEnemy(); // プレイヤーと敵
+	void CollisionBeamEnemy(); // ビームと敵
 
 private: // メンバ変数
 	DirectXCommon* dxCommon_ = nullptr;
