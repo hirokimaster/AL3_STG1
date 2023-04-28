@@ -127,6 +127,14 @@ public: // メンバ関数
 	void GameOverDraw2DNear(); // ゲームオーバー
 	void GameOverUpdate(); // ゲームオーバー更新
 
+	// サウンド
+	uint32_t soundDateHandleTitleBGM_ = 0;
+	uint32_t soundDateHandleGamePlayBGM_ = 0;
+	uint32_t soundDateHandleGameOverBGM_ = 0;
+	uint32_t soundDateHandleEnemyHitSE_ = 0;
+	uint32_t soundDateHandlePlayerHitSE_ = 0;
+	uint32_t voiceHandleBGM_ = 0;
+
 
 
 private: // メンバ変数
