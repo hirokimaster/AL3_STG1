@@ -41,14 +41,14 @@ public: // メンバ関数
 	// 弾（ビーム）
 	uint32_t textureHandleBeam_ = 0;
 	Model* modelBeam_ = nullptr;
-	WorldTransform worldTransformBeam_;
-	int beamFlag_ = false;
+	WorldTransform worldTransformBeam_[10];
+	int beamFlag_[10];
 
 	// 敵
 	uint32_t textureHandleEnemy_ = 0;
 	Model* modelEnemy_ = nullptr;
-	WorldTransform worldTransformEnemy_;
-	int isEnemyAlive_ = true;
+	WorldTransform worldTransformEnemy_[10];
+	int isEnemyAlive_[10];
 
 	// タイトル（スプライト）
 	uint32_t textureHandleTitle_ = 0;
@@ -108,11 +108,13 @@ public: // メンバ関数
 	void BeamUpdate();    // 更新
 	void BeamMove();      // 移動
 	void BeamBron();      // 発生
+	int beamTimer = 0;
 
 	// 敵
 	void EnemyUpdate();   // 更新
 	void EnemyMove();     // 移動
 	void EnemyBron();     // 発生
+	float enemySpeed_[10];
 
 	// 衝突判定
 	void Collision();
