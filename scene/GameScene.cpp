@@ -46,22 +46,27 @@ void GameScene::Initialize() {
 	viewProjection_.Initialize();
 
 	// ステージ
-	textureHandleStage_ = TextureManager::Load("stage.jpg");
+	textureHandleStage_ = TextureManager::Load("stage2.jpg");
 	modelStage_ = Model::Create();
-	worldTransformStage_.Initialize();
+	for (int i = 0; i < 20; i++) {
+		worldTransformStage_[i].Initialize();
+	}
 
-	// ステージの位置を変更
-	worldTransformStage_.translation_ = {0, -1.5f, 0};
-	worldTransformStage_.scale_ = {4.5f, 1, 40};
+	for (int i = 0; i < 20; i++) {
+		// ステージの位置を変更
+		worldTransformStage_[i].translation_ = {0, -1.5f, 2.0f * i - 5};
+		worldTransformStage_[i].scale_ = {4.5f, 1, 1};
+
+		// 変換行列を更新
+		worldTransformStage_[i].matWorld_ = MakeAffineMatrix(
+		    worldTransformStage_[i].scale_, worldTransformStage_[i].rotation_,
+		    worldTransformStage_[i].translation_);
+
+		// 変換行列を定数バッファに転送
+		worldTransformStage_[i].TransferMatrix();
+	}
 	
-	//変換行列を更新
-	worldTransformStage_.matWorld_ = MakeAffineMatrix(
-	    worldTransformStage_.scale_,
-		worldTransformStage_.rotation_,
-	worldTransformStage_.translation_);
-
-	// 変換行列を定数バッファに転送
-	worldTransformStage_.TransferMatrix();	
+	
 
 	// プレイヤー
 	textureHandlePlayer_ = TextureManager::Load("player.png");
@@ -111,6 +116,7 @@ void GameScene::Initialize() {
 // ゲームプレイ前の初期化
 void GameScene::GamePlayStart() {
 
+	gameTimer_ = 0;
 	// 敵
     for (int i = 0; i < 10; i++) {
 		 worldTransformEnemy_[i].translation_.z = 40;
@@ -144,6 +150,7 @@ void GameScene::GamePlayUpdate() {
 	EnemyUpdate();
 	BeamUpdate();
 	Collision();
+	StageUpdate();
 
 	// 
 	if (playerLife_ <= 0) {
@@ -159,10 +166,37 @@ void GameScene::GamePlayUpdate() {
 
 }
 
+// ステージ更新
+void GameScene::StageUpdate() {
 
+	for (int i = 0; i < 20; i++) {
+	    // スクロール
+		worldTransformStage_[i].translation_.z -= 0.1f;
+		// 端まで行ったら戻る
+		if (worldTransformStage_[i].translation_.z < -5) {
+			worldTransformStage_[i].translation_.z += 40;
+		}
+
+		// 変換行列を更新
+		worldTransformStage_[i].matWorld_ = MakeAffineMatrix(
+		    worldTransformStage_[i].scale_,
+			worldTransformStage_[i].rotation_,
+		    worldTransformStage_[i].translation_);
+
+		// バッファに転送
+		worldTransformStage_[i].TransferMatrix();
+
+	}
+
+
+}
+
+// 3D描画
 void GameScene::GamePlayDraw3D() {
-	// ステージ
-	modelStage_->Draw(worldTransformStage_, viewProjection_, textureHandleStage_);
+	for (int i = 0; i < 20; i++) {
+		// ステージ
+		modelStage_->Draw(worldTransformStage_[i], viewProjection_, textureHandleStage_);
+	}
 
 	// プレイヤー表示
 	modelPlayer_->Draw(worldTransformPlayer_, viewProjection_, textureHandlePlayer_);
@@ -178,7 +212,7 @@ void GameScene::GamePlayDraw3D() {
 
 	// 敵表示
 	for (int i = 0; i < 10; i++) {
-		if (isEnemyAlive_) {
+		if (isEnemyAlive_[i] || isEnemyAlive_[i] == 2) {
 
 			modelEnemy_->Draw(worldTransformEnemy_[i], viewProjection_, textureHandleEnemy_);
 		}
@@ -342,7 +376,7 @@ void GameScene::EnemyUpdate() {
 	
 	}
 	
-
+	EnemyJump();
 	EnemyMove();
 	EnemyBron();
 
@@ -358,7 +392,7 @@ void GameScene::EnemyMove() {
 		// 移動
 		if (isEnemyAlive_) {
 
-			worldTransformEnemy_[i].translation_.z -= 0.1f;
+			worldTransformEnemy_[i].translation_.z -= gameTimer_/1000.0f;
 			worldTransformEnemy_[i].translation_.x += enemySpeed_[i];
 		}
 
@@ -394,6 +428,7 @@ void GameScene::EnemyBron() {
 		if (isEnemyAlive_[i] == false) {
 			isEnemyAlive_[i] = true;
 			worldTransformEnemy_[i].translation_.z = 40;
+			worldTransformEnemy_[i].translation_.y = 0;
 			worldTransformEnemy_[i].translation_.x = randX2;
 			// スピード
 			if (rand() % 2 == 0) {
@@ -409,6 +444,28 @@ void GameScene::EnemyBron() {
 	}
 	
 	
+
+}
+
+
+// ジャンプ演出
+void GameScene::EnemyJump() {
+
+	for (int i = 0; i < 10; i++) {
+		if (isEnemyAlive_[i] == 2) {
+			worldTransformEnemy_[i].translation_.y += enemyJump_[i];
+			// 重力
+			enemyJump_[i] -= 0.1f;
+			// 斜め移動
+			//worldTransformEnemy_[i].translation_.x += enemyJump_[i] * 4;
+			// 消滅
+			if (worldTransformEnemy_[i].translation_.y < -3) {
+				isEnemyAlive_[i] = false;
+			}
+
+		}
+	}
+
 
 }
 
@@ -473,8 +530,9 @@ void GameScene::CollisionBeamEnemy() {
 					// 当たったら
 					if (dx < 1 && dz < 1) {
 						// 消える
-						isEnemyAlive_[i] = false;
+						isEnemyAlive_[i] = 2;
 						beamFlag_[j] = false;
+						enemyJump_[i] = 1.0f;
 						gameScore_ = gameScore_ + 1;
 
 						// SE

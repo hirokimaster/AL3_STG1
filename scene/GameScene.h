@@ -31,7 +31,7 @@ public: // メンバ関数
 	// ステージ
 	uint32_t textureHandleStage_ = 0;
 	Model* modelStage_ = nullptr;
-	WorldTransform worldTransformStage_;
+	WorldTransform worldTransformStage_[20];
 
 	// プレイヤー
 	uint32_t textureHandlePlayer_ = 0;
@@ -49,6 +49,7 @@ public: // メンバ関数
 	Model* modelEnemy_ = nullptr;
 	WorldTransform worldTransformEnemy_[10];
 	int isEnemyAlive_[10];
+	float enemyJump_[10];
 
 	// タイトル（スプライト）
 	uint32_t textureHandleTitle_ = 0;
@@ -101,6 +102,9 @@ public: // メンバ関数
 	// 初期化
 	void GamePlayStart(); //変数の初期化など
 
+	// ステージ
+	void StageUpdate();
+
 	// プレイヤー
 	void PlayerUpdate();
 
@@ -114,6 +118,7 @@ public: // メンバ関数
 	void EnemyUpdate();   // 更新
 	void EnemyMove();     // 移動
 	void EnemyBron();     // 発生
+	void EnemyJump();
 	float enemySpeed_[10];
 
 	// 衝突判定
