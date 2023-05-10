@@ -106,6 +106,18 @@ void GameScene::Initialize() {
 	textureHandleGameOver_ = TextureManager::Load("gameover.png");
 	spriteGameOver_ = Sprite::Create(textureHandleGameOver_, {0, 0});
 
+	// スコア数値
+	textureHandleNumber_ = TextureManager::Load("number.png");
+	for (int i = 0; i < 5; i++) {
+		spriteNumber_[i] = Sprite::Create(textureHandleNumber_, {300.0f + i * 26, 0});
+	}
+
+	// ライフ
+	for (int i = 0; i < 3; i++) {
+		spriteLife_[i] = Sprite::Create(textureHandlePlayer_, {800.0f + i * 60, 0});
+		spriteLife_[i]->SetSize({40, 40});
+	}
+
 	//デバッグ
 	debugText_ = DebugText::GetInstance();
 	debugText_->Initialize();
@@ -116,6 +128,7 @@ void GameScene::Initialize() {
 // ゲームプレイ前の初期化
 void GameScene::GamePlayStart() {
 
+	playerTimer_ = 0;
 	gameTimer_ = 0;
 	// 敵
     for (int i = 0; i < 10; i++) {
@@ -140,6 +153,35 @@ void GameScene::GamePlayStart() {
 	worldTransformPlayer_.translation_.x = 0;
 
 
+
+}
+
+// スコア表示
+void GameScene::DrawScore() { 
+
+
+	int eachNumber[5] = {};
+	int number = gameScore_;
+	int keta = 10000;
+	for (int i = 0; i < 5; i++) {
+		 eachNumber[i] = number / keta;
+		 number = number % keta;
+		 keta = keta / 10;
+	}
+
+
+	// 描画
+	for (int i = 0; i < 5; i++) {
+		 spriteNumber_[i]->SetSize({32, 64});
+		 spriteNumber_[i]->SetTextureRect({32.0f * eachNumber[i], 0}, {32, 64});
+		 spriteNumber_[i]->Draw();
+	
+	}
+
+	for (int i = 0; i < playerLife_; i++) {
+		 spriteLife_[i]->Draw();
+	
+	}
 
 }
 
@@ -199,8 +241,11 @@ void GameScene::GamePlayDraw3D() {
 	}
 
 	// プレイヤー表示
-	modelPlayer_->Draw(worldTransformPlayer_, viewProjection_, textureHandlePlayer_);
-
+	if (playerTimer_ % 4 < 2) {
+		modelPlayer_->Draw(worldTransformPlayer_, viewProjection_, textureHandlePlayer_);
+	
+	}
+	
 	// ビーム表示
 	for (int i = 0; i < 10; i++) {
 		if (beamFlag_) {
@@ -228,13 +273,8 @@ void GameScene::GamePlayDraw2DBack() {
 }
 
 void GameScene::GamePlayDraw2DNear() {
-	// ゲームスコア
-	char str[100];
-	sprintf_s(str, "SCORE %d", gameScore_);
-	debugText_->Print(str, 200, 10, 2);
-	// プレイヤーライフ
-	sprintf_s(str, "LIFE %d", playerLife_);
-	debugText_->Print(str, 1000, 10, 2);
+	
+	DrawScore();
 
 }
 
@@ -278,6 +318,9 @@ void GameScene::PlayerUpdate() {
 		worldTransformPlayer_.translation_.x = -4.0f;
 	}
 
+	if (playerTimer_ > 0) {
+		playerTimer_ -= 1;
+	}
 
 }
 
@@ -426,6 +469,7 @@ void GameScene::EnemyBron() {
 	// 発生
 	for (int i = 0; i < 10; i++) {
 		if (isEnemyAlive_[i] == false) {
+
 			isEnemyAlive_[i] = true;
 			worldTransformEnemy_[i].translation_.z = 40;
 			worldTransformEnemy_[i].translation_.y = 0;
@@ -498,6 +542,7 @@ void GameScene::CollisionPlayerEnemy() {
 			// 当たったら
 			if (dx < 1 && dz < 1) {
 				// 消える
+				playerTimer_ = 60;
 				isEnemyAlive_[i] = false;
 				playerLife_ = playerLife_ - 1;
 
@@ -580,6 +625,7 @@ void GameScene::TitleUpdate() {
 	// エンターキー押したとき　(タイトルからプレイ）
 	if (input_->TriggerKey(DIK_RETURN)) {
 		sceneMode_ = 0;
+		gameTimer_ = 0;
 
 		// BGM
 		audio_->StopWave(voiceHandleBGM_);
@@ -614,6 +660,7 @@ void GameScene::Update() {
 	switch (sceneMode_) {
 
 	case 0:
+		gameTimer_++;
 		GamePlayUpdate(); // ゲームプレイ
 		break;
 

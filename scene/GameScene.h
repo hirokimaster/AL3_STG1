@@ -37,6 +37,8 @@ public: // メンバ関数
 	uint32_t textureHandlePlayer_ = 0;
 	Model* modelPlayer_ = nullptr;
 	WorldTransform worldTransformPlayer_;
+	Sprite* spriteLife_[3];
+	int playerTimer_ = 0;
 
 	// 弾（ビーム）
 	uint32_t textureHandleBeam_ = 0;
@@ -72,6 +74,10 @@ public: // メンバ関数
 
 	// シーン
 	int sceneMode_ = 1;
+
+	// スコア
+	uint32_t textureHandleNumber_ = 0;
+	Sprite* spriteNumber_[5];
 
 	/// <summary>
 	/// デストラクタ
@@ -139,6 +145,9 @@ public: // メンバ関数
 	uint32_t soundDateHandleEnemyHitSE_ = 0;
 	uint32_t soundDateHandlePlayerHitSE_ = 0;
 	uint32_t voiceHandleBGM_ = 0;
+
+	// スコア数値
+	void DrawScore();
 
 
 
